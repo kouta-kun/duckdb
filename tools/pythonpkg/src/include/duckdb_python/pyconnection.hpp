@@ -39,6 +39,7 @@ public:
 	vector<shared_ptr<DuckDBPyConnection>> cursors;
 	unordered_map<string, shared_ptr<Relation>> temporary_views;
 	std::mutex py_connection_lock;
+        py::object row_factory = py::none();
 
 public:
 	explicit DuckDBPyConnection() {

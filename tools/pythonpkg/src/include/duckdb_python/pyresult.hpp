@@ -13,7 +13,7 @@
 #include "duckdb_python/pybind_wrapper.hpp"
 
 namespace duckdb {
-
+struct DuckDBPyConnection;
 struct DuckDBPyResult {
 public:
 	idx_t chunk_offset = 0;
@@ -25,9 +25,13 @@ public:
 	// Holds the categorical type of Categorical/ENUM types
 	unordered_map<idx_t, py::object> categories_type;
 
+	DuckDBPyConnection *parent_connection;
+	// RFC: the parent connection may not be a shared_ptr so a rawptr was used
+	// Any better way to do this?
+
 	string timezone_config;
 
-	explicit DuckDBPyResult() {};
+        explicit DuckDBPyResult(DuckDBPyConnection* parent_connection = nullptr) : parent_connection{parent_connection} {};
 
 public:
 	static void Initialize(py::handle &m);

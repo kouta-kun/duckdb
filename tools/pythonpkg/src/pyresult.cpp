@@ -199,17 +199,25 @@ py::object DuckDBPyResult::Fetchone() {
 	if (!current_chunk || current_chunk->size() == 0) {
 		return py::none();
 	}
-	py::tuple res(result->types.size());
+	py::object res;
+	py::tuple tup = py::tuple(result->types.size());
 
 	for (idx_t col_idx = 0; col_idx < result->types.size(); col_idx++) {
 		auto &mask = FlatVector::Validity(current_chunk->data[col_idx]);
 		if (!mask.RowIsValid(chunk_offset)) {
-			res[col_idx] = py::none();
+		        tup[col_idx] = py::none();
 			continue;
 		}
 		auto val = current_chunk->data[col_idx].GetValue(chunk_offset);
-		res[col_idx] = GetValueToPython(val, result->types[col_idx]);
+	        tup[col_idx] = GetValueToPython(val, result->types[col_idx]);
 	}
+
+	res = tup;
+
+	if(parent_connection != nullptr && parent_connection->row_factory != py::none()) {
+		res = parent_connection->row_factory(*parent_connection, res);
+	}
+	
 	chunk_offset++;
 	return move(res);
 }

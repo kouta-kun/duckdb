@@ -105,7 +105,8 @@ void DuckDBPyConnection::Initialize(py::handle &m) {
 	                           "Get result set attributes, mainly column names")
 	    .def("install_extension", &DuckDBPyConnection::InstallExtension, "Install an extension by name",
 	         py::arg("extension"), py::kw_only(), py::arg("force_install") = false)
-	    .def("load_extension", &DuckDBPyConnection::LoadExtension, "Load an installed extension", py::arg("extension"));
+	    .def("load_extension", &DuckDBPyConnection::LoadExtension, "Load an installed extension", py::arg("extension"))
+		.def_readwrite("row_factory", &DuckDBPyConnection::row_factory);
 
 	PyDateTime_IMPORT;
 	DuckDBPyConnection::ImportCache();
@@ -180,7 +181,7 @@ DuckDBPyConnection *DuckDBPyConnection::Execute(const string &query, py::object 
 			                            py::len(single_query_params));
 		}
 		auto args = DuckDBPyConnection::TransformPythonParamList(single_query_params);
-		auto res = make_unique<DuckDBPyResult>();
+		auto res = make_unique<DuckDBPyResult>(this);
 		{
 			py::gil_scoped_release release;
 			unique_lock<std::mutex> lock(py_connection_lock);
